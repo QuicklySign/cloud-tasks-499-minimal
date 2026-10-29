@@ -1,0 +1,4 @@
+errors.jsonl
+*.log
+.venv/
+__pycache__/
