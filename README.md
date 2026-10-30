@@ -10,7 +10,12 @@ checked afterwards for tasks whose CreateTask call failed.
 
 ## Run it as a Cloud Run job
 
+From Cloud Shell, or anywhere with `gcloud` logged in as a project owner:
+
 ```sh
+git clone https://github.com/QuicklySign/cloud-tasks-499-minimal
+cd cloud-tasks-499-minimal
+
 PROJECT_ID=your-project
 REGION=europe-west1
 gcloud config set project $PROJECT_ID
@@ -18,7 +23,7 @@ gcloud services enable cloudtasks.googleapis.com run.googleapis.com cloudbuild.g
 
 # The job and the source build run as the default compute service account.
 SA=$(gcloud projects describe $PROJECT_ID --format='value(projectNumber)')-compute@developer.gserviceaccount.com
-for role in cloudtasks.enqueuer cloudtasks.viewer run.builder; do
+for role in cloudtasks.enqueuer cloudtasks.viewer logging.logWriter run.builder; do
   gcloud projects add-iam-policy-binding $PROJECT_ID --member=serviceAccount:$SA --role=roles/$role --condition=None
 done
 

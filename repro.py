@@ -119,3 +119,5 @@ def main():
 
 if __name__ == "__main__":
 	main()
+	# Cloud Run jobs can drop the last log lines of a container that exits straight after printing them.
+	time.sleep(5)
