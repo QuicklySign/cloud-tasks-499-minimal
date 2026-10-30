@@ -1,6 +1,6 @@
 """Creates Cloud Tasks at a steady rate and records every CreateTask call that fails, to reproduce 499 CANCELLED.
 
-python repro.py run   --project P --location europe-west1 --queue repro-499 [--rate 100] [--minutes 60]
+python repro.py run   --project P --location europe-west1 --queue repro-499 [--rate 100] [--minutes 60] [--check]
 python repro.py check --project P --location europe-west1 --queue repro-499
 """
 
@@ -50,7 +50,7 @@ def run(args, client, parent):
 				"repro_id": repro_id,
 				"message": str(exc),
 			}
-			print(json.dumps(error), flush=True)
+			print(f"CreateTask failed {error['time']} {code} {error['ms']}ms id={repro_id}: {exc}", flush=True)
 			with lock, open(ERRORS_FILE, "a") as f:
 				f.write(json.dumps(error) + "\n")
 		with lock:
@@ -106,11 +106,15 @@ def main():
 	parser.add_argument("--minutes", type=float, default=60)
 	parser.add_argument("--workers", type=int, default=32)
 	parser.add_argument("--url", default="https://example.com/", help="never called while the queue is paused")
+	parser.add_argument("--check", action="store_true", help="after run, also check the queue")
 	args = parser.parse_args()
 
 	client = tasks_v2.CloudTasksClient()
 	parent = client.queue_path(args.project, args.location, args.queue)
-	(run if args.command == "run" else check)(args, client, parent)
+	if args.command == "run":
+		run(args, client, parent)
+	if args.command == "check" or args.check:
+		check(args, client, parent)
 
 
 if __name__ == "__main__":
